@@ -1,0 +1,2143 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>SubGuard AI - Subscription & Expense Manager</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    >
+
+    <style>
+        body {
+            font-family: Arial, "Noto Sans Thai", sans-serif;
+            background: #f8fafc;
+        }
+
+        .sidebar-item {
+            transition: 0.2s;
+        }
+
+        .sidebar-item:hover {
+            background: #f1f5f9;
+        }
+
+        .sidebar-item.active {
+            background: #e0f2fe;
+            color: #0284c7;
+            font-weight: 600;
+        }
+
+        .card {
+            background: white;
+            border-radius: 18px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+        }
+
+        .modal {
+            display: none;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .ai-gradient {
+            background: linear-gradient(135deg, #0ea5e9, #6366f1);
+        }
+    </style>
+</head>
+
+<body class="text-slate-800">
+
+<div class="min-h-screen flex">
+
+    <!-- SIDEBAR -->
+
+    <aside class="w-64 bg-white border-r border-slate-200 hidden md:flex flex-col">
+
+        <div class="p-6 border-b border-slate-100">
+
+            <div class="flex items-center gap-3">
+
+                <div class="w-11 h-11 rounded-xl ai-gradient flex items-center justify-center text-white">
+                    <i class="fa-solid fa-shield-halved text-xl"></i>
+                </div>
+
+                <div>
+                    <h1 class="font-bold text-lg">SubGuard</h1>
+                    <p class="text-xs text-slate-400">
+                        AI Expense Manager
+                    </p>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <nav class="p-4 space-y-2">
+
+            <button
+                onclick="showPage('dashboard')"
+                id="nav-dashboard"
+                class="sidebar-item active w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left"
+            >
+                <i class="fa-solid fa-chart-pie w-5"></i>
+                Dashboard
+            </button>
+
+
+            <button
+                onclick="showPage('subscriptions')"
+                id="nav-subscriptions"
+                class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left"
+            >
+                <i class="fa-solid fa-repeat w-5"></i>
+                Subscriptions
+            </button>
+
+
+            <button
+                onclick="showPage('expenses')"
+                id="nav-expenses"
+                class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left"
+            >
+                <i class="fa-solid fa-wallet w-5"></i>
+                Expenses
+            </button>
+
+
+            <button
+                onclick="showPage('ai')"
+                id="nav-ai"
+                class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left"
+            >
+                <i class="fa-solid fa-robot w-5"></i>
+                AI Assistant
+            </button>
+
+
+            <button
+                onclick="showPage('notifications')"
+                id="nav-notifications"
+                class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left"
+            >
+                <i class="fa-solid fa-bell w-5"></i>
+                Notifications
+            </button>
+
+        </nav>
+
+
+        <div class="mt-auto p-4">
+
+            <div class="rounded-2xl p-4 bg-slate-50">
+
+                <p class="text-xs text-slate-400">
+                    Current Plan
+                </p>
+
+                <p class="font-bold">
+                    Free Plan
+                </p>
+
+                <button
+                    onclick="upgradePlan()"
+                    class="mt-3 w-full bg-slate-900 text-white rounded-xl py-2 text-sm"
+                >
+                    Upgrade to Premium
+                </button>
+
+            </div>
+
+        </div>
+
+    </aside>
+
+
+    <!-- MAIN -->
+
+    <main class="flex-1 min-w-0">
+
+
+        <!-- MOBILE HEADER -->
+
+        <header class="md:hidden bg-white border-b p-4">
+
+            <div class="flex items-center gap-2">
+
+                <div class="w-9 h-9 rounded-lg ai-gradient flex items-center justify-center text-white">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+
+                <b>SubGuard</b>
+
+            </div>
+
+        </header>
+
+
+        <!-- DASHBOARD -->
+
+        <section id="page-dashboard" class="p-5 md:p-8">
+
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+
+                <div>
+
+                    <h2 class="text-2xl md:text-3xl font-bold">
+                        Dashboard
+                    </h2>
+
+                    <p class="text-slate-500 mt-1">
+                        จัดการค่าใช้จ่ายและ Subscription ของคุณในที่เดียว
+                    </p>
+
+                </div>
+
+
+                <button
+                    onclick="openAddSubscription()"
+                    class="bg-slate-900 text-white px-5 py-3 rounded-xl"
+                >
+                    <i class="fa-solid fa-plus mr-2"></i>
+                    เพิ่ม Subscription
+                </button>
+
+            </div>
+
+
+            <!-- SUMMARY -->
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-6">
+
+
+                <div class="card p-5">
+
+                    <p class="text-sm text-slate-500">
+                        ค่าใช้จ่ายเดือนนี้
+                    </p>
+
+                    <h3
+                        id="monthlyExpense"
+                        class="text-2xl font-bold mt-2"
+                    >
+                        ฿0
+                    </h3>
+
+                </div>
+
+
+                <div class="card p-5">
+
+                    <p class="text-sm text-slate-500">
+                        Subscription ต่อเดือน
+                    </p>
+
+                    <h3
+                        id="subscriptionExpense"
+                        class="text-2xl font-bold mt-2"
+                    >
+                        ฿0
+                    </h3>
+
+                </div>
+
+
+                <div class="card p-5">
+
+                    <p class="text-sm text-slate-500">
+                        รายการใกล้ครบกำหนด
+                    </p>
+
+                    <h3
+                        id="upcomingCount"
+                        class="text-2xl font-bold mt-2"
+                    >
+                        0
+                    </h3>
+
+                </div>
+
+
+                <div class="card p-5">
+
+                    <p class="text-sm text-slate-500">
+                        AI Spending Score
+                    </p>
+
+                    <h3
+                        id="spendingScore"
+                        class="text-2xl font-bold mt-2"
+                    >
+                        -
+                    </h3>
+
+                </div>
+
+            </div>
+
+
+            <!-- AI INSIGHT -->
+
+            <div class="card p-6 mb-6">
+
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+
+                    <div>
+
+                        <h3 class="font-bold text-lg">
+                            🤖 AI Spending Insight
+                        </h3>
+
+                        <p
+                            id="aiInsight"
+                            class="text-slate-500 mt-1"
+                        >
+                            กดปุ่มเพื่อให้ AI วิเคราะห์พฤติกรรมการใช้จ่ายของคุณ
+                        </p>
+
+                    </div>
+
+
+                    <button
+                        onclick="runAIAnalysis()"
+                        class="ai-gradient text-white px-5 py-3 rounded-xl"
+                    >
+                        วิเคราะห์ด้วย AI
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+
+
+                <!-- CHART -->
+
+                <div class="card p-6">
+
+                    <h3 class="font-bold text-lg mb-5">
+                        ค่าใช้จ่ายรายเดือน
+                    </h3>
+
+                    <div class="h-72">
+
+                        <canvas id="expenseChart"></canvas>
+
+                    </div>
+
+                </div>
+
+
+                <!-- UPCOMING -->
+
+                <div class="card p-6">
+
+                    <h3 class="font-bold text-lg mb-5">
+                        Upcoming Payments
+                    </h3>
+
+                    <div
+                        id="upcomingPayments"
+                        class="space-y-3"
+                    ></div>
+
+                </div>
+
+            </div>
+
+
+            <!-- QUICK ACTION -->
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+
+
+                <button
+                    onclick="openAddSubscription()"
+                    class="card p-5 text-left"
+                >
+
+                    <i class="fa-solid fa-plus text-blue-600 text-xl"></i>
+
+                    <h3 class="font-semibold mt-3">
+                        เพิ่ม Subscription
+                    </h3>
+
+                    <p class="text-sm text-slate-400">
+                        บันทึกบริการที่สมัครอยู่
+                    </p>
+
+                </button>
+
+
+                <button
+                    onclick="showPage('expenses')"
+                    class="card p-5 text-left"
+                >
+
+                    <i class="fa-solid fa-receipt text-purple-600 text-xl"></i>
+
+                    <h3 class="font-semibold mt-3">
+                        บันทึกค่าใช้จ่าย
+                    </h3>
+
+                    <p class="text-sm text-slate-400">
+                        เพิ่มรายการใช้จ่ายประจำวัน
+                    </p>
+
+                </button>
+
+
+                <button
+                    onclick="showPage('ai')"
+                    class="card p-5 text-left"
+                >
+
+                    <i class="fa-solid fa-brain text-emerald-600 text-xl"></i>
+
+                    <h3 class="font-semibold mt-3">
+                        AI Assistant
+                    </h3>
+
+                    <p class="text-sm text-slate-400">
+                        ถาม AI เกี่ยวกับการเงิน
+                    </p>
+
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- SUBSCRIPTIONS -->
+
+        <section
+            id="page-subscriptions"
+            class="p-5 md:p-8 hidden"
+        >
+
+            <div class="flex justify-between items-center mb-8">
+
+                <div>
+
+                    <h2 class="text-2xl md:text-3xl font-bold">
+                        Subscriptions
+                    </h2>
+
+                    <p class="text-slate-500">
+                        จัดการบริการที่สมัครสมาชิกทั้งหมด
+                    </p>
+
+                </div>
+
+
+                <button
+                    onclick="openAddSubscription()"
+                    class="bg-slate-900 text-white px-5 py-3 rounded-xl"
+                >
+                    + เพิ่ม
+                </button>
+
+            </div>
+
+
+            <div
+                id="subscriptionList"
+                class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5"
+            ></div>
+
+        </section>
+
+
+        <!-- EXPENSES -->
+
+        <section
+            id="page-expenses"
+            class="p-5 md:p-8 hidden"
+        >
+
+            <div class="flex justify-between items-center mb-8">
+
+                <div>
+
+                    <h2 class="text-2xl md:text-3xl font-bold">
+                        Expenses
+                    </h2>
+
+                    <p class="text-slate-500">
+                        บันทึกและติดตามค่าใช้จ่าย
+                    </p>
+
+                </div>
+
+
+                <button
+                    onclick="openExpenseModal()"
+                    class="bg-slate-900 text-white px-5 py-3 rounded-xl"
+                >
+                    + เพิ่มค่าใช้จ่าย
+                </button>
+
+            </div>
+
+
+            <!-- UPLOAD SLIP -->
+
+            <div class="card p-6 mb-6">
+
+                <h3 class="font-bold">
+                    📄 Upload Slip
+                </h3>
+
+                <p class="text-sm text-slate-500 mt-1">
+                    อัปโหลดสลิปเพื่อเก็บหลักฐานค่าใช้จ่าย
+                </p>
+
+                <input
+                    id="slipUpload"
+                    type="file"
+                    accept="image/*,.pdf"
+                    class="mt-4"
+                >
+
+                <p
+                    id="uploadStatus"
+                    class="text-sm text-emerald-600 mt-2"
+                ></p>
+
+            </div>
+
+
+            <div class="card overflow-hidden">
+
+                <div class="overflow-x-auto">
+
+                    <table class="w-full text-sm">
+
+                        <thead class="bg-slate-50">
+
+                            <tr>
+
+                                <th class="text-left p-4">
+                                    รายการ
+                                </th>
+
+                                <th class="text-left p-4">
+                                    หมวดหมู่
+                                </th>
+
+                                <th class="text-left p-4">
+                                    วันที่
+                                </th>
+
+                                <th class="text-right p-4">
+                                    จำนวนเงิน
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody id="expenseTable"></tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- AI -->
+
+        <section
+            id="page-ai"
+            class="p-5 md:p-8 hidden"
+        >
+
+            <div class="mb-8">
+
+                <h2 class="text-2xl md:text-3xl font-bold">
+                    AI Assistant
+                </h2>
+
+                <p class="text-slate-500">
+                    ผู้ช่วย AI สำหรับวิเคราะห์ค่าใช้จ่าย
+                </p>
+
+            </div>
+
+
+            <div class="card overflow-hidden">
+
+                <div class="ai-gradient text-white p-6">
+
+                    <h3 class="text-xl font-bold">
+                        🤖 SubGuard AI
+                    </h3>
+
+                    <p class="text-white/80 text-sm">
+                        AI Financial Assistant
+                    </p>
+
+                </div>
+
+
+                <div
+                    id="chatMessages"
+                    class="p-6 h-96 overflow-y-auto space-y-4"
+                >
+
+                    <div class="bg-slate-100 rounded-2xl p-4 max-w-xl">
+
+                        สวัสดี 👋 ฉันคือ SubGuard AI
+                        ถามฉันเกี่ยวกับค่าใช้จ่ายหรือ Subscription
+                        ของคุณได้เลย
+
+                    </div>
+
+                </div>
+
+
+                <div class="border-t p-4">
+
+                    <div class="flex gap-3">
+
+                        <input
+                            id="aiInput"
+                            type="text"
+                            placeholder="เช่น ฉันควรลดค่าใช้จ่ายตรงไหน?"
+                            class="flex-1 border rounded-xl px-4 py-3"
+                        >
+
+
+                        <button
+                            onclick="sendAIMessage()"
+                            class="ai-gradient text-white px-5 rounded-xl"
+                        >
+                            ส่ง
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- NOTIFICATIONS -->
+
+        <section
+            id="page-notifications"
+            class="p-5 md:p-8 hidden"
+        >
+
+            <div class="mb-8">
+
+                <h2 class="text-2xl md:text-3xl font-bold">
+                    Notifications
+                </h2>
+
+                <p class="text-slate-500">
+                    ตั้งค่าการแจ้งเตือน
+                </p>
+
+            </div>
+
+
+            <div class="card p-6 mb-6">
+
+                <h3 class="font-bold">
+                    🔔 แจ้งเตือนก่อนครบกำหนด
+                </h3>
+
+                <p class="text-sm text-slate-500 mt-2">
+                    ระบบจะแจ้งเตือนล่วงหน้า 3 วัน
+                </p>
+
+                <span class="inline-block mt-3 bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs">
+                    Active
+                </span>
+
+            </div>
+
+
+            <div class="card p-6">
+
+                <h3 class="font-bold">
+                    Browser Notification
+                </h3>
+
+                <p class="text-sm text-slate-500 mt-2">
+                    เปิดการแจ้งเตือนผ่าน Browser
+                </p>
+
+                <button
+                    onclick="enableBrowserNotification()"
+                    class="mt-4 bg-slate-900 text-white px-5 py-3 rounded-xl"
+                >
+                    เปิดการแจ้งเตือน
+                </button>
+
+                <p
+                    id="notificationStatus"
+                    class="text-sm mt-3"
+                ></p>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+
+<!-- SUBSCRIPTION MODAL -->
+
+<div
+    id="subscriptionModal"
+    class="modal fixed inset-0 bg-black/40 items-center justify-center p-4 z-50"
+>
+
+    <div class="bg-white rounded-2xl w-full max-w-lg p-6">
+
+        <div class="flex justify-between mb-6">
+
+            <h3 class="text-xl font-bold">
+                เพิ่ม Subscription
+            </h3>
+
+            <button onclick="closeAddSubscription()">
+                ✕
+            </button>
+
+        </div>
+
+
+        <div class="space-y-4">
+
+            <input
+                id="subName"
+                type="text"
+                placeholder="ชื่อบริการ เช่น Netflix"
+                class="w-full border rounded-xl px-4 py-3"
+            >
+
+
+            <input
+                id="subPrice"
+                type="number"
+                placeholder="ราคา / เดือน"
+                class="w-full border rounded-xl px-4 py-3"
+            >
+
+
+            <input
+                id="subDate"
+                type="date"
+                class="w-full border rounded-xl px-4 py-3"
+            >
+
+
+            <select
+                id="subCategory"
+                class="w-full border rounded-xl px-4 py-3"
+            >
+
+                <option>Entertainment</option>
+                <option>Software</option>
+                <option>Education</option>
+                <option>Cloud</option>
+                <option>Other</option>
+
+            </select>
+
+
+            <button
+                onclick="saveSubscription()"
+                class="w-full bg-slate-900 text-white py-3 rounded-xl"
+            >
+                บันทึก
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- EXPENSE MODAL -->
+
+<div
+    id="expenseModal"
+    class="modal fixed inset-0 bg-black/40 items-center justify-center p-4 z-50"
+>
+
+    <div class="bg-white rounded-2xl w-full max-w-lg p-6">
+
+        <div class="flex justify-between mb-6">
+
+            <h3 class="text-xl font-bold">
+                เพิ่มค่าใช้จ่าย
+            </h3>
+
+            <button onclick="closeExpenseModal()">
+                ✕
+            </button>
+
+        </div>
+
+
+        <div class="space-y-4">
+
+            <input
+                id="expenseName"
+                type="text"
+                placeholder="รายการ เช่น อาหาร"
+                class="w-full border rounded-xl px-4 py-3"
+            >
+
+
+            <input
+                id="expenseAmount"
+                type="number"
+                placeholder="จำนวนเงิน"
+                class="w-full border rounded-xl px-4 py-3"
+            >
+
+
+            <select
+                id="expenseCategory"
+                class="w-full border rounded-xl px-4 py-3"
+            >
+
+                <option>Food</option>
+                <option>Transport</option>
+                <option>Shopping</option>
+                <option>Entertainment</option>
+                <option>Education</option>
+                <option>Other</option>
+
+            </select>
+
+
+            <input
+                id="expenseDate"
+                type="date"
+                class="w-full border rounded-xl px-4 py-3"
+            >
+
+
+            <button
+                onclick="saveExpense()"
+                class="w-full bg-slate-900 text-white py-3 rounded-xl"
+            >
+                บันทึกค่าใช้จ่าย
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+/* DATA */
+
+let subscriptions =
+    JSON.parse(
+        localStorage.getItem(
+            "subguard_subscriptions"
+        )
+    ) || [];
+
+
+let expenses =
+    JSON.parse(
+        localStorage.getItem(
+            "subguard_expenses"
+        )
+    ) || [];
+
+
+/* PAGE */
+
+function showPage(page) {
+
+    const pages = [
+        "dashboard",
+        "subscriptions",
+        "expenses",
+        "ai",
+        "notifications"
+    ];
+
+
+    pages.forEach(name => {
+
+        document
+            .getElementById(
+                "page-" + name
+            )
+            .classList.toggle(
+                "hidden",
+                name !== page
+            );
+
+
+        document
+            .getElementById(
+                "nav-" + name
+            )
+            .classList.toggle(
+                "active",
+                name === page
+            );
+
+    });
+
+
+    if (page === "dashboard") {
+        updateDashboard();
+    }
+
+}
+
+
+/* SUBSCRIPTION */
+
+function openAddSubscription() {
+
+    document
+        .getElementById(
+            "subscriptionModal"
+        )
+        .classList.add("show");
+
+}
+
+
+function closeAddSubscription() {
+
+    document
+        .getElementById(
+            "subscriptionModal"
+        )
+        .classList.remove("show");
+
+}
+
+
+function saveSubscription() {
+
+    const name =
+        document.getElementById(
+            "subName"
+        ).value.trim();
+
+
+    const price =
+        Number(
+            document.getElementById(
+                "subPrice"
+            ).value
+        );
+
+
+    const date =
+        document.getElementById(
+            "subDate"
+        ).value;
+
+
+    const category =
+        document.getElementById(
+            "subCategory"
+        ).value;
+
+
+    if (!name || !price || !date) {
+
+        alert(
+            "กรุณากรอกข้อมูลให้ครบ"
+        );
+
+        return;
+
+    }
+
+
+    subscriptions.push({
+
+        id: Date.now(),
+
+        name,
+
+        price,
+
+        date,
+
+        category
+
+    });
+
+
+    localStorage.setItem(
+        "subguard_subscriptions",
+        JSON.stringify(
+            subscriptions
+        )
+    );
+
+
+    closeAddSubscription();
+
+    renderSubscriptions();
+
+    updateDashboard();
+
+}
+
+
+/* DELETE */
+
+function deleteSubscription(id) {
+
+    subscriptions =
+        subscriptions.filter(
+            item =>
+            item.id !== id
+        );
+
+
+    localStorage.setItem(
+        "subguard_subscriptions",
+        JSON.stringify(
+            subscriptions
+        )
+    );
+
+
+    renderSubscriptions();
+
+    updateDashboard();
+
+}
+
+
+/* EXPENSE */
+
+function openExpenseModal() {
+
+    document
+        .getElementById(
+            "expenseModal"
+        )
+        .classList.add("show");
+
+}
+
+
+function closeExpenseModal() {
+
+    document
+        .getElementById(
+            "expenseModal"
+        )
+        .classList.remove("show");
+
+}
+
+
+function saveExpense() {
+
+    const name =
+        document.getElementById(
+            "expenseName"
+        ).value.trim();
+
+
+    const amount =
+        Number(
+            document.getElementById(
+                "expenseAmount"
+            ).value
+        );
+
+
+    const category =
+        document.getElementById(
+            "expenseCategory"
+        ).value;
+
+
+    const date =
+        document.getElementById(
+            "expenseDate"
+        ).value;
+
+
+    if (!name || !amount || !date) {
+
+        alert(
+            "กรุณากรอกข้อมูลให้ครบ"
+        );
+
+        return;
+
+    }
+
+
+    expenses.push({
+
+        id: Date.now(),
+
+        name,
+
+        amount,
+
+        category,
+
+        date
+
+    });
+
+
+    localStorage.setItem(
+        "subguard_expenses",
+        JSON.stringify(
+            expenses
+        )
+    );
+
+
+    closeExpenseModal();
+
+    renderExpenses();
+
+    updateDashboard();
+
+}
+
+
+/* DATE */
+
+function daysUntil(dateString) {
+
+    const today =
+        new Date();
+
+
+    today.setHours(
+        0,0,0,0
+    );
+
+
+    const target =
+        new Date(
+            dateString
+        );
+
+
+    target.setHours(
+        0,0,0,0
+    );
+
+
+    return Math.ceil(
+        (
+            target - today
+        ) /
+        (
+            1000 *
+            60 *
+            60 *
+            24
+        )
+    );
+
+}
+
+
+/* DASHBOARD */
+
+function updateDashboard() {
+
+    const subscriptionTotal =
+        subscriptions.reduce(
+            (
+                sum,
+                item
+            ) =>
+                sum +
+                Number(
+                    item.price
+                ),
+            0
+        );
+
+
+    const month =
+        new Date()
+            .toISOString()
+            .slice(0,7);
+
+
+    const monthlyExpense =
+        expenses
+            .filter(
+                item =>
+                item.date
+                    .startsWith(
+                        month
+                    )
+            )
+            .reduce(
+                (
+                    sum,
+                    item
+                ) =>
+                    sum +
+                    Number(
+                        item.amount
+                    ),
+                0
+            );
+
+
+    document.getElementById(
+        "monthlyExpense"
+    ).textContent =
+        formatMoney(
+            monthlyExpense
+        );
+
+
+    document.getElementById(
+        "subscriptionExpense"
+    ).textContent =
+        formatMoney(
+            subscriptionTotal
+        );
+
+
+    const upcoming =
+        subscriptions.filter(
+            item => {
+
+                const days =
+                    daysUntil(
+                        item.date
+                    );
+
+                return (
+                    days >= 0 &&
+                    days <= 3
+                );
+
+            }
+        );
+
+
+    document.getElementById(
+        "upcomingCount"
+    ).textContent =
+        upcoming.length;
+
+
+    renderUpcoming();
+
+    updateScore();
+
+    updateChart();
+
+}
+
+
+/* SUBSCRIPTION LIST */
+
+function renderSubscriptions() {
+
+    const container =
+        document.getElementById(
+            "subscriptionList"
+        );
+
+
+    if (!subscriptions.length) {
+
+        container.innerHTML = `
+
+            <div class="col-span-full card p-10 text-center">
+
+                <p class="font-semibold">
+                    ยังไม่มี Subscription
+                </p>
+
+                <p class="text-sm text-slate-400 mt-1">
+                    เพิ่ม Subscription แรกของคุณได้เลย
+                </p>
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    container.innerHTML =
+        subscriptions
+            .map(
+                item => {
+
+                    const days =
+                        daysUntil(
+                            item.date
+                        );
+
+
+                    return `
+
+                        <div class="card p-5">
+
+                            <div class="flex justify-between">
+
+                                <div>
+
+                                    <h3 class="font-bold">
+                                        ${escapeHTML(item.name)}
+                                    </h3>
+
+                                    <p class="text-xs text-slate-400">
+                                        ${escapeHTML(item.category)}
+                                    </p>
+
+                                </div>
+
+
+                                <button
+                                    onclick="deleteSubscription(${item.id})"
+                                    class="text-red-500"
+                                >
+                                    🗑
+                                </button>
+
+                            </div>
+
+
+                            <p class="text-2xl font-bold mt-5">
+                                ${formatMoney(item.price)}
+                            </p>
+
+
+                            <p class="text-sm text-slate-500 mt-1">
+                                ครบกำหนด ${formatDate(item.date)}
+                            </p>
+
+
+                            <span class="inline-block mt-3 text-xs px-3 py-1 rounded-full bg-orange-100 text-orange-700">
+
+                                ${
+                                    days === 0
+                                    ? "ครบกำหนดวันนี้"
+                                    : days > 0
+                                    ? `อีก ${days} วัน`
+                                    : "เลยกำหนด"
+                                }
+
+                            </span>
+
+                        </div>
+
+                    `;
+
+                }
+            )
+            .join("");
+
+}
+
+
+/* UPCOMING */
+
+function renderUpcoming() {
+
+    const container =
+        document.getElementById(
+            "upcomingPayments"
+        );
+
+
+    const upcoming =
+        [...subscriptions]
+            .filter(
+                item => {
+
+                    const days =
+                        daysUntil(
+                            item.date
+                        );
+
+                    return (
+                        days >= 0 &&
+                        days <= 7
+                    );
+
+                }
+            )
+            .sort(
+                (
+                    a,
+                    b
+                ) =>
+                    new Date(a.date) -
+                    new Date(b.date)
+            );
+
+
+    if (!upcoming.length) {
+
+        container.innerHTML = `
+
+            <div class="text-center py-8 text-slate-400">
+
+                ยังไม่มีรายการใกล้ครบกำหนด
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    container.innerHTML =
+        upcoming
+            .map(
+                item => `
+
+                    <div class="flex justify-between items-center p-4 bg-slate-50 rounded-xl">
+
+                        <div>
+
+                            <p class="font-semibold">
+                                ${escapeHTML(item.name)}
+                            </p>
+
+                            <p class="text-xs text-slate-400">
+                                ${formatDate(item.date)}
+                            </p>
+
+                        </div>
+
+
+                        <div class="text-right">
+
+                            <p class="font-semibold">
+                                ${formatMoney(item.price)}
+                            </p>
+
+                            <p class="text-xs text-orange-600">
+                                ${daysUntil(item.date)} วัน
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                `
+            )
+            .join("");
+
+}
+
+
+/* EXPENSE TABLE */
+
+function renderExpenses() {
+
+    const table =
+        document.getElementById(
+            "expenseTable"
+        );
+
+
+    if (!expenses.length) {
+
+        table.innerHTML = `
+
+            <tr>
+
+                <td
+                    colspan="4"
+                    class="p-10 text-center text-slate-400"
+                >
+                    ยังไม่มีรายการค่าใช้จ่าย
+                </td>
+
+            </tr>
+
+        `;
+
+        return;
+
+    }
+
+
+    table.innerHTML =
+        expenses
+            .map(
+                item => `
+
+                    <tr class="border-t">
+
+                        <td class="p-4">
+                            ${escapeHTML(item.name)}
+                        </td>
+
+                        <td class="p-4">
+                            ${escapeHTML(item.category)}
+                        </td>
+
+                        <td class="p-4">
+                            ${formatDate(item.date)}
+                        </td>
+
+                        <td class="p-4 text-right font-semibold">
+                            ${formatMoney(item.amount)}
+                        </td>
+
+                    </tr>
+
+                `
+            )
+            .join("");
+
+}
+
+
+/* AI API */
+
+async function callAI(message) {
+
+    const response =
+        await fetch(
+            "/.netlify/functions/ai",
+            {
+
+                method: "POST",
+
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body: JSON.stringify({
+
+                    message,
+
+                    subscriptions,
+
+                    expenses
+
+                })
+
+            }
+        );
+
+
+    const data =
+        await response.json();
+
+
+    if (!response.ok) {
+
+        throw new Error(
+            data.error ||
+            "AI request failed"
+        );
+
+    }
+
+
+    return data.reply;
+
+}
+
+
+/* AI ANALYSIS */
+
+async function runAIAnalysis() {
+
+    const insight =
+        document.getElementById(
+            "aiInsight"
+        );
+
+
+    insight.textContent =
+        "กำลังวิเคราะห์ข้อมูลด้วย AI...";
+
+
+    try {
+
+        const reply =
+            await callAI(
+                `
+                วิเคราะห์พฤติกรรมการใช้จ่าย
+                และ Subscription ของผู้ใช้
+
+                สรุป:
+                1. ค่าใช้จ่าย
+                2. Subscription ที่ควรจับตา
+                3. วิธีลดค่าใช้จ่าย
+                4. คำแนะนำที่ทำได้จริง
+
+                ตอบภาษาไทยแบบกระชับ
+                `
+            );
+
+
+        insight.textContent =
+            reply;
+
+    } catch (error) {
+
+        insight.textContent =
+            "ไม่สามารถเชื่อมต่อ AI ได้";
+
+        console.error(error);
+
+    }
+
+}
+
+
+/* AI CHAT */
+
+async function sendAIMessage() {
+
+    const input =
+        document.getElementById(
+            "aiInput"
+        );
+
+
+    const message =
+        input.value.trim();
+
+
+    if (!message) return;
+
+
+    addChatMessage(
+        message,
+        "user"
+    );
+
+
+    input.value = "";
+
+
+    addChatMessage(
+        "กำลังคิด...",
+        "ai"
+    );
+
+
+    try {
+
+        const reply =
+            await callAI(
+                message
+            );
+
+
+        addChatMessage(
+            reply,
+            "ai"
+        );
+
+    } catch (error) {
+
+        addChatMessage(
+            "เกิดข้อผิดพลาดในการเชื่อมต่อ AI",
+            "ai"
+        );
+
+    }
+
+}
+
+
+function addChatMessage(
+    message,
+    sender
+) {
+
+    const container =
+        document.getElementById(
+            "chatMessages"
+        );
+
+
+    const div =
+        document.createElement(
+            "div"
+        );
+
+
+    div.className =
+        sender === "user"
+        ? "flex justify-end"
+        : "flex";
+
+
+    div.innerHTML = `
+
+        <div class="${
+            sender === "user"
+            ? "bg-slate-900 text-white"
+            : "bg-slate-100"
+        } rounded-2xl p-4 max-w-xl">
+
+            ${escapeHTML(message)}
+
+        </div>
+
+    `;
+
+
+    container.appendChild(
+        div
+    );
+
+
+    container.scrollTop =
+        container.scrollHeight;
+
+}
+
+
+/* SCORE */
+
+function updateScore() {
+
+    let score = 90;
+
+
+    if (
+        subscriptions.length > 8
+    ) {
+
+        score -= 10;
+
+    }
+
+
+    const total =
+        subscriptions.reduce(
+            (
+                sum,
+                item
+            ) =>
+                sum +
+                Number(
+                    item.price
+                ),
+            0
+        );
+
+
+    if (total > 3000) {
+        score -= 15;
+    }
+
+
+    if (total > 5000) {
+        score -= 15;
+    }
+
+
+    document.getElementById(
+        "spendingScore"
+    ).textContent =
+        subscriptions.length
+        ? Math.max(
+            score,
+            40
+        )
+        : "-";
+
+}
+
+
+/* CHART */
+
+let expenseChart;
+
+
+function updateChart() {
+
+    const canvas =
+        document.getElementById(
+            "expenseChart"
+        );
+
+
+    if (!canvas) return;
+
+
+    const ctx =
+        canvas.getContext(
+            "2d"
+        );
+
+
+    const labels = [];
+
+    const values = [];
+
+
+    for (
+        let i = 5;
+        i >= 0;
+        i--
+    ) {
+
+        const date =
+            new Date();
+
+
+        date.setMonth(
+            date.getMonth() - i
+        );
+
+
+        const key =
+            date
+                .toISOString()
+                .slice(0,7);
+
+
+        labels.push(
+            date.toLocaleDateString(
+                "th-TH",
+                {
+                    month: "short"
+                }
+            )
+        );
+
+
+        values.push(
+
+            expenses
+                .filter(
+                    item =>
+                    item.date
+                        .startsWith(
+                            key
+                        )
+                )
+                .reduce(
+                    (
+                        sum,
+                        item
+                    ) =>
+                        sum +
+                        Number(
+                            item.amount
+                        ),
+                    0
+                )
+
+        );
+
+    }
+
+
+    if (expenseChart) {
+
+        expenseChart.destroy();
+
+    }
+
+
+    expenseChart =
+        new Chart(
+            ctx,
+            {
+
+                type: "line",
+
+                data: {
+
+                    labels,
+
+                    datasets: [{
+
+                        label:
+                            "ค่าใช้จ่าย",
+
+                        data:
+                            values,
+
+                        borderWidth:
+                            3,
+
+                        tension:
+                            0.35,
+
+                        fill:
+                            true
+
+                    }]
+
+                },
+
+                options: {
+
+                    responsive:
+                        true,
+
+                    maintainAspectRatio:
+                        false,
+
+                    plugins: {
+
+                        legend: {
+                            display:
+                                false
+                        }
+
+                    },
+
+                    scales: {
+
+                        y: {
+
+                            beginAtZero:
+                                true
+
+                        }
+
+                    }
+
+                }
+
+            }
+        );
+
+}
+
+
+/* NOTIFICATION */
+
+async function enableBrowserNotification() {
+
+    if (
+        !("Notification" in window)
+    ) {
+
+        return;
+
+    }
+
+
+    const permission =
+        await Notification.requestPermission();
+
+
+    const status =
+        document.getElementById(
+            "notificationStatus"
+        );
+
+
+    if (
+        permission ===
+        "granted"
+    ) {
+
+        status.textContent =
+            "เปิดการแจ้งเตือนเรียบร้อยแล้ว";
+
+
+        new Notification(
+            "SubGuard AI",
+            {
+                body:
+                    "ระบบแจ้งเตือนพร้อมใช้งานแล้ว"
+            }
+        );
+
+    } else {
+
+        status.textContent =
+            "ยังไม่ได้อนุญาตการแจ้งเตือน";
+
+    }
+
+}
+
+
+/* UPLOAD */
+
+document
+    .getElementById(
+        "slipUpload"
+    )
+    .addEventListener(
+        "change",
+        function() {
+
+            const file =
+                this.files[0];
+
+
+            if (!file) return;
+
+
+            document.getElementById(
+                "uploadStatus"
+            ).textContent =
+                `เลือกไฟล์ ${file.name} แล้ว`;
+
+        }
+    );
+
+
+/* UTILITIES */
+
+function formatMoney(
+    value
+) {
+
+    return new Intl.NumberFormat(
+        "th-TH",
+        {
+
+            style:
+                "currency",
+
+            currency:
+                "THB",
+
+            maximumFractionDigits:
+                0
+
+        }
+    ).format(
+        value || 0
+    );
+
+}
+
+
+function formatDate(
+    date
+) {
+
+    return new Date(
+        date
+    ).toLocaleDateString(
+        "th-TH",
+        {
+
+            day:
+                "numeric",
+
+            month:
+                "short",
+
+            year:
+                "numeric"
+
+        }
+    );
+
+}
+
+
+function escapeHTML(
+    value
+) {
+
+    return String(
+        value
+    )
+        .replaceAll(
+            "&",
+            "&amp;"
+        )
+        .replaceAll(
+            "<",
+            "&lt;"
+        )
+        .replaceAll(
+            ">",
+            "&gt;"
+        )
+        .replaceAll(
+            '"',
+            "&quot;"
+        )
+        .replaceAll(
+            "'",
+            "&#039;"
+        );
+
+}
+
+
+function upgradePlan() {
+
+    alert(
+        "Premium Plan\n\n" +
+        "• AI Assistant\n" +
+        "• AI Spending Analysis\n" +
+        "• Email Notification\n" +
+        "• Advanced Reports\n\n" +
+        "ราคา 49 บาท / เดือน"
+    );
+
+}
+
+
+/* START */
+
+renderSubscriptions();
+
+renderExpenses();
+
+updateDashboard();
+
+</script>
+
+</body>
+</html>
